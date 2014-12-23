@@ -109,6 +109,9 @@
 	<data name="UsersDeleted" xml:space="preserve">
 		<value>Utilisateurs supprimés</value>
 	</data>
+  <data name="UsersUnlocked" xml:space="preserve">
+		<value>Utilisateurs débloqués</value>
+	</data>
 	<data name="ErrorDeletingUser" xml:space="preserve">
 		<value>Erreur de suppression de l’utilisateur.</value>
 	</data>

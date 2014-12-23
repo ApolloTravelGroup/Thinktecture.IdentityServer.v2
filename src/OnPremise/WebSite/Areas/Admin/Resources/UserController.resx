@@ -109,6 +109,9 @@
 	<data name="UsersDeleted" xml:space="preserve">
     <value>Users Deleted</value>
   </data>
+  <data name="UsersUnlocked" xml:space="preserve">
+    <value>Users Unlocked</value>
+  </data>
 	<data name="ErrorDeletingUser" xml:space="preserve">
     <value>Error deleting user.</value>
   </data>

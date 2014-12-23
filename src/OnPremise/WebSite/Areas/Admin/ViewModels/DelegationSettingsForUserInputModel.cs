@@ -10,49 +10,40 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.ViewModels
 {
     public class DelegationSettingsForUserViewModel
     {
-        private Repositories.IDelegationRepository delegationRepository;
-        IUserManagementRepository userManagementRepository;
-        
         [Required]
         public string UserName { get; set; }
         public IEnumerable<DelegationSetting> DelegationSettings { get; set; }
+        public IEnumerable<SelectListItem> AllUserNames { get; set; }
 
         public bool IsNew
         {
             get
             {
-                return this.UserName == null;
+                return UserName == null;
             }
         }
 
-        public IEnumerable<SelectListItem> AllUserNames { get; set; }
-
-        public DelegationSettingsForUserViewModel(Repositories.IDelegationRepository delegationRepository, IUserManagementRepository userManagementRepository, string username)
+        public DelegationSettingsForUserViewModel(IDelegationRepository delegationRepository, IUserManagementRepository userManagementRepository, string username)
         {
-            this.delegationRepository = delegationRepository;
-            this.userManagementRepository = userManagementRepository;
             int totalCount;
             var allnames =
                 userManagementRepository.GetUsers(0, 100, out totalCount)
-                .Select(x => new SelectListItem
-                {
-                    Text = x
-                }).ToList();
+                    .Select(x => new SelectListItem
+                    {
+                        Text = x.UserName
+                    }).ToList();
             allnames.Insert(0, new SelectListItem { Text = DelegationSettingsForUserInputModel.ChooseItem, Value = "" });
-            this.AllUserNames = allnames;
+            AllUserNames = allnames;
             
-            this.UserName = username;
+            UserName = username;
             if (!IsNew)
             {
-                var realmSettings =
-                        this.delegationRepository
-                            .GetDelegationSettingsForUser(this.UserName)
-                            .ToArray();
-                this.DelegationSettings = realmSettings;
+                var realmSettings = delegationRepository .GetDelegationSettingsForUser(UserName).ToArray();
+                DelegationSettings = realmSettings;
             }
             else
             {
-                this.DelegationSettings = new DelegationSetting[0];
+                DelegationSettings = new DelegationSetting[0];
             }
         }
     }

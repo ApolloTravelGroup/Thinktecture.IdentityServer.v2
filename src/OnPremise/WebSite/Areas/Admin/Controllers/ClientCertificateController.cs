@@ -30,7 +30,7 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.Controllers
 
         public ActionResult Index()
         {
-            var vm = new ClientCertificatesViewModel(this.clientCertificatesRepository);
+            var vm = new ClientCertificatesViewModel(clientCertificatesRepository);
             return View(vm);
         }
         
@@ -51,10 +51,10 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.Controllers
                 {
                     foreach (var user in users.Where(x => x.Delete))
                     {
-                        var settings = this.clientCertificatesRepository.GetClientCertificatesForUser(user.Username);
+                        var settings = clientCertificatesRepository.GetClientCertificatesForUser(user.Username);
                         foreach (var setting in settings)
                         {
-                            this.clientCertificatesRepository.Delete(setting);
+                            clientCertificatesRepository.Delete(setting);
                         }
                     }
                     TempData["Message"] = Resources.ClientCertificateController.UserCertificatesDeleted;
@@ -75,8 +75,7 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.Controllers
 
         public ActionResult Configure(string id = null)
         {
-            var vm = new ClientCertificatesForUserViewModel(this.clientCertificatesRepository, this.userManagementRepository, id);
-            return View("Configure", vm);
+            return View("Configure", new ClientCertificatesForUserViewModel(clientCertificatesRepository, userManagementRepository, id));
         }
 
         [HttpPost]
@@ -97,7 +96,7 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.Controllers
             {
                 try
                 {
-                    this.clientCertificatesRepository.Add(newCertificate);
+                    clientCertificatesRepository.Add(newCertificate);
                     TempData["Message"] = Resources.ClientCertificateController.CertificateAdded;
                     return RedirectToAction("Configure", new { id = newCertificate.UserName });
                 }
@@ -111,8 +110,7 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.Controllers
                 }
             }
 
-            var vm = new ClientCertificatesForUserViewModel(this.clientCertificatesRepository, this.userManagementRepository, newCertificate.UserName);
-            vm.NewCertificate = newCertificate;
+            var vm = new ClientCertificatesForUserViewModel(clientCertificatesRepository, userManagementRepository, newCertificate.UserName) {NewCertificate = newCertificate};
             return View("Configure", vm);
         }
 
@@ -124,7 +122,7 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.Controllers
             {
                 try
                 {
-                    this.clientCertificatesRepository.Delete(model);
+                    clientCertificatesRepository.Delete(model);
                     TempData["Message"] = Resources.ClientCertificateController.CertificateRemoved;
                     return RedirectToAction("Configure", new { id = model.UserName });
                 }
@@ -138,8 +136,7 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.Controllers
                 }
             }
 
-            var vm = new ClientCertificatesForUserViewModel(this.clientCertificatesRepository, this.userManagementRepository, model.UserName);
-            return View("Configure", vm);
+            return View("Configure", new ClientCertificatesForUserViewModel(clientCertificatesRepository, userManagementRepository, model.UserName));
         }
     }
 }

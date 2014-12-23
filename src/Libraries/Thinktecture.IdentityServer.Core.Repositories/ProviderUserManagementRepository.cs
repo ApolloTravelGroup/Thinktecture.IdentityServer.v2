@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Configuration.Provider;
 using System.Linq;
 using System.Web.Security;
+using Thinktecture.IdentityServer.Models;
 
 namespace Thinktecture.IdentityServer.Repositories
 {
@@ -71,13 +72,19 @@ namespace Thinktecture.IdentityServer.Repositories
             { }
         }
 
-        public IEnumerable<string> GetUsers(int pageIndex, int count, out int totalCount)
+        public void UnlockUser(string userName)
         {
-            var items = Membership.GetAllUsers(pageIndex, count, out totalCount).OfType<MembershipUser>();
-            return items.Select(x => x.UserName);
+            var user = Membership.GetUser(userName);
+            user.UnlockUser();
         }
 
-        public IEnumerable<string> GetUsers(string filter, int pageIndex, int count, out int totalCount)
+        public IEnumerable<User> GetUsers(int pageIndex, int count, out int totalCount)
+        {
+            var items = Membership.GetAllUsers(pageIndex, count, out totalCount).OfType<MembershipUser>();
+            return items.Select(MapMembershipUserToDomainUser);
+        }
+
+        public IEnumerable<User> GetUsers(string filter, int pageIndex, int count, out int totalCount)
         {
             var items = Membership.GetAllUsers().OfType<MembershipUser>();
 			filter = filter.ToLower();
@@ -85,9 +92,18 @@ namespace Thinktecture.IdentityServer.Repositories
                 from user in items
                 where user.UserName.ToLower().Contains(filter) ||
                       (user.Email != null && user.Email.ToLower().Contains(filter))
-                select user.UserName;
+                select MapMembershipUserToDomainUser(user);
             totalCount = query.Count();
             return query.Skip(pageIndex * count).Take(count);
+        }
+
+        private static User MapMembershipUserToDomainUser(MembershipUser user)
+        {
+            return new User 
+            {
+                UserName = user.UserName, 
+                IsLockedOut = user.IsLockedOut,
+            };
         }
 
         public void SetPassword(string userName, string password)
@@ -123,15 +139,8 @@ namespace Thinktecture.IdentityServer.Repositories
             }
             if (provider.MinRequiredNonAlphanumericCharacters > 0)
             {
-                int num2 = 0;
-                for (int i = 0; i < password.Length; i++)
-                {
-                    if (!char.IsLetterOrDigit(password[i]))
-                    {
-                        num2++;
-                    }
-                }
-                if (num2 < provider.MinRequiredNonAlphanumericCharacters)
+                var numberOfNonAlphaNumericCharacters = password.Count(t => !char.IsLetterOrDigit(t));
+                if (numberOfNonAlphaNumericCharacters < provider.MinRequiredNonAlphanumericCharacters)
                 {
                     throw new ValidationException(String.Format("{0} is the minimum number of non-alphanumeric characters", provider.MinRequiredNonAlphanumericCharacters));
                 }

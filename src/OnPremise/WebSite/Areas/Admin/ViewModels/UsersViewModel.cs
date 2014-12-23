@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using Thinktecture.IdentityServer.Models;
 using Thinktecture.IdentityServer.Repositories;
 
 namespace Thinktecture.IdentityServer.Web.Areas.Admin.ViewModels
@@ -11,14 +12,14 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.ViewModels
         [Import]
         public IConfigurationRepository ConfigurationRepository { get; set; }
 
-        private Repositories.IUserManagementRepository UserManagementRepository;
+        private readonly IUserManagementRepository _userManagementRepository;
 
-        public UsersViewModel(Repositories.IUserManagementRepository UserManagementRepository, int currentPage, string filter)
+        public UsersViewModel(IUserManagementRepository userManagementRepository, int currentPage, string filter)
         {
             Container.Current.SatisfyImportsOnce(this);
 
-            this.UserManagementRepository = UserManagementRepository;
-            this.Filter = filter;
+            _userManagementRepository = userManagementRepository;
+            Filter = filter;
 
             Init(currentPage, filter);
             if (TotalPages < CurrentPage)
@@ -32,19 +33,19 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.ViewModels
             if (currentPage <= 0) CurrentPage = 1;
             else CurrentPage = currentPage;
 
-            int rows = 20;
+            const int rows = 20;
             int pageIndex = (currentPage - 1);
-
+            IEnumerable<User> users;
             if (String.IsNullOrEmpty(filter))
             {
                 int total;
-                Users = UserManagementRepository.GetUsers(pageIndex, rows, out total);
+                users = _userManagementRepository.GetUsers(pageIndex, rows, out total);
                 Total = total;
             }
             else
             {
                 int total;
-                Users = UserManagementRepository.GetUsers(filter, pageIndex, rows, out total);
+                users = _userManagementRepository.GetUsers(filter, pageIndex, rows, out total);
                 Total = total;
             }
 
@@ -56,12 +57,11 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.ViewModels
             {
                 Showing = rows;
             }
-            UsersDeleteList = Users.Select(x => new UserDeleteModel { Username = x }).ToArray();
+            Users = users.Select(x => new UserModel { Username = x.UserName, IsLockedOut = x.IsLockedOut }).ToArray();
 
         }
 
-        public IEnumerable<string> Users { get; set; }
-        public UserDeleteModel[] UsersDeleteList {get;set;}
+        public UserModel[] Users {get;set;}
         public string Filter { get; set; }
         public int Total { get; set; }
         public int Showing { get; set; }
@@ -93,9 +93,10 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.ViewModels
         }
     }
 
-    public class UserDeleteModel
+    public class UserModel
     {
         public string Username { get; set; }
-        public bool Delete { get; set; }
+        public bool IsSelectedForAction { get; set; }
+        public bool IsLockedOut { get; set; }
     }
 }

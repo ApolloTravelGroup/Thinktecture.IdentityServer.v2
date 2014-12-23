@@ -120,6 +120,9 @@
 	<data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
+  <data name="Unlock" xml:space="preserve">
+    <value>Unlock Selected</value>
+  </data>
 	<data name="DeleteSelected" xml:space="preserve">
     <value>Delete Selected</value>
   </data>
@@ -131,6 +134,9 @@
   </data>
 	<data name="Roles" xml:space="preserve">
     <value>roles</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>password</value>
   </data>
 	<data name="Users" xml:space="preserve">
     <value>Users</value>

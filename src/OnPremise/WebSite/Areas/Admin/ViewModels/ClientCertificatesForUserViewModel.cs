@@ -9,52 +9,41 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.ViewModels
 {
     public class ClientCertificatesForUserViewModel
     {
-        private Repositories.IClientCertificatesRepository clientCertificatesRepository;
-        private Repositories.IUserManagementRepository userManagementRepository;
-        
         [Required]
         public string UserName { get; set; }
         public IEnumerable<ClientCertificate> Certificates { get; set; }
-
+        public IEnumerable<SelectListItem> AllUserNames { get; set; }
         public ClientCertificate NewCertificate { get; set; }
 
         public bool IsNew
         {
             get
             {
-                return this.UserName == null;
+                return UserName == null;
             }
         }
 
-        public IEnumerable<SelectListItem> AllUserNames { get; set; }
-
         public ClientCertificatesForUserViewModel(IClientCertificatesRepository clientCertificatesRepository, IUserManagementRepository userManagementRepository, string username)
-        {
-            this.clientCertificatesRepository = clientCertificatesRepository;
-            this.userManagementRepository = userManagementRepository;
+        {            
             int totalCount;
-            var allnames =
+            var allnames = 
                 userManagementRepository.GetUsers(0, 100, out totalCount)
                 .Select(x => new SelectListItem
                 {
-                    Text = x
+                    Text = x.UserName
                 }).ToList();
             allnames.Insert(0, new SelectListItem { Text = Resources.ClientCertificatesForUserViewModel.ChooseItem, Value = "" });
-            this.AllUserNames = allnames;
+            AllUserNames = allnames;
             
-            this.UserName = username;
+            UserName = username;
             NewCertificate = new ClientCertificate { UserName = username };
             if (!IsNew)
             {
-                var certs =
-                        this.clientCertificatesRepository
-                        .GetClientCertificatesForUser(this.UserName)
-                            .ToArray();
-                this.Certificates = certs;
+                Certificates = clientCertificatesRepository.GetClientCertificatesForUser(UserName).ToArray();
             }
             else
             {
-                this.Certificates = new ClientCertificate[0];
+                Certificates = new ClientCertificate[0];
             }
         }
     }

@@ -31,7 +31,7 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.Controllers
 
         public ActionResult Index()
         {
-            var vm = new DelegationViewModel(this.delegationRepository);
+            var vm = new DelegationViewModel(delegationRepository);
             return View("Index", vm);
         }
 
@@ -52,10 +52,10 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.Controllers
                 {
                     foreach (var user in users.Where(x => x.Delete))
                     {
-                        var settings = this.delegationRepository.GetDelegationSettingsForUser(user.Username);
+                        var settings = delegationRepository.GetDelegationSettingsForUser(user.Username);
                         foreach (var setting in settings)
                         {
-                            this.delegationRepository.Delete(setting);
+                            delegationRepository.Delete(setting);
                         }
                     }
                     TempData["Message"] = Resources.DelegationController.DelegationUsersDeleted;
@@ -76,8 +76,7 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.Controllers
 
         public ActionResult Configure(string id = null)
         {
-            var vm = new DelegationSettingsForUserViewModel(this.delegationRepository, this.userManagementRepository, id);
-            return View("Configure", vm);
+            return View("Configure", new DelegationSettingsForUserViewModel(this.delegationRepository, this.userManagementRepository, id));
         }
 
         [HttpPost]
@@ -88,7 +87,7 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.Controllers
             {
                 try
                 {
-                    this.delegationRepository.Add(model);
+                    delegationRepository.Add(model);
                     TempData["Message"] = Resources.DelegationController.RealmAdded;
                     return RedirectToAction("Configure", new { id = model.UserName });
                 }
@@ -102,8 +101,7 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.Controllers
                 }
             }
 
-            var vm = new DelegationSettingsForUserViewModel(this.delegationRepository, this.userManagementRepository, model.UserName);
-            return View("Configure", vm);
+            return View("Configure", new DelegationSettingsForUserViewModel(delegationRepository, userManagementRepository, model.UserName));
         }
 
         [HttpPost]
@@ -125,8 +123,7 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.Controllers
                 ModelState.AddModelError("", Resources.DelegationController.ErrorDeletingDelegationSetting);
             }
 
-            var vm = new DelegationSettingsForUserViewModel(this.delegationRepository, this.userManagementRepository, model.UserName);
-            return View("Configure", vm);
+            return View("Configure", new DelegationSettingsForUserViewModel(delegationRepository, userManagementRepository, model.UserName));
         }
     }
 }

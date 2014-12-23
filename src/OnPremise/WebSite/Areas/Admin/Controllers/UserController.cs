@@ -33,22 +33,36 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Index(int page, string filter, string action, UserDeleteModel[] list)
+        public ActionResult Index(int page, string filter, string action, UserModel[] users)
         {
+            if (action == "unlock") return Unlock(page, filter, users);
             if (action == "new") return Create();
-            if (action == "delete") return Delete(page, filter, list);
+            if (action == "delete") return Delete(page, filter, users);
 
             ModelState.AddModelError("", Resources.UserController.InvalidAction);
             var vm = new UsersViewModel(UserManagementRepository, page, filter);
             return View("Index", vm);
         }
 
+        private ActionResult Unlock(int page, string filter, UserModel[] list)
+        {
+            if (ModelState.IsValid)
+            {
+                foreach (var name in list.Where(x => x.IsSelectedForAction).Select(x => x.Username))
+                {
+                    UserManagementRepository.UnlockUser(name);
+                }
+
+                TempData["Message"] = Resources.UserController.UsersUnlocked;
+                return RedirectToAction("Index", new { page, filter });
+            }
+            return Index(page, filter);
+        }
+
         public ActionResult Create()
         {
             var rolesvm = new UserRolesViewModel(UserManagementRepository, String.Empty);
-            var vm = new UserInputModel();
-            vm.Roles = rolesvm.RoleAssignments;
-            return View("Create", vm);
+            return View("Create", new UserInputModel {Roles = rolesvm.RoleAssignments});
         }
 
         [HttpPost]
@@ -59,13 +73,13 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.Controllers
             {
                 try
                 {
-                    this.UserManagementRepository.CreateUser(model.Username, model.Password, model.Email);
+                    UserManagementRepository.CreateUser(model.Username, model.Password, model.Email);
                     if (model.Roles != null)
                     {
                         var roles = model.Roles.Where(x => x.InRole).Select(x => x.Role);
                         if (roles.Any())
                         {
-                            this.UserManagementRepository.SetRolesForUser(model.Username, roles);
+                            UserManagementRepository.SetRolesForUser(model.Username, roles);
                         }
                     }
                     TempData["Message"] = Resources.UserController.UserCreated;
@@ -84,15 +98,15 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.Controllers
             return View("Create", model);
         }
 
-        private ActionResult Delete(int page, string filter, UserDeleteModel[] list)
+        private ActionResult Delete(int page, string filter, UserModel[] list)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    foreach (var name in list.Where(x => x.Delete).Select(x => x.Username))
+                    foreach (var name in list.Where(x => x.IsSelectedForAction).Select(x => x.Username))
                     {
-                        this.UserManagementRepository.DeleteUser(name);
+                        UserManagementRepository.DeleteUser(name);
                     }
                     TempData["Message"] = Resources.UserController.UsersDeleted;
                     return RedirectToAction("Index", new { page, filter });
@@ -119,14 +133,14 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Roles(string username, UserRoleAssignment[] roleAssignments)
         {
-            var vm = new UserRolesViewModel(this.UserManagementRepository, username);
+            var vm = new UserRolesViewModel(UserManagementRepository, username);
             if (ModelState.IsValid)
             {
                 try
                 {
                     var currentRoles =
                         roleAssignments.Where(x => x.InRole).Select(x => x.Role);
-                    this.UserManagementRepository.SetRolesForUser(username, currentRoles);
+                    UserManagementRepository.SetRolesForUser(username, currentRoles);
                     TempData["Message"] = Resources.UserController.RolesAssignedSuccessfully;
                     return RedirectToAction("Roles", new { username });
                 }
@@ -179,7 +193,7 @@ namespace Thinktecture.IdentityServer.Web.Areas.Admin.Controllers
             {
                 try
                 {
-                    this.UserManagementRepository.SetPassword(model.Username, model.Password);
+                    UserManagementRepository.SetPassword(model.Username, model.Password);
                     TempData["Message"] = Resources.UserController.ProfileUpdated;
                     return RedirectToAction("Index");
                 }

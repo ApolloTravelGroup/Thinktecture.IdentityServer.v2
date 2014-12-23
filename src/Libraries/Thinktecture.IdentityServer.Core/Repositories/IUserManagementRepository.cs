@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Thinktecture.IdentityServer.Models;
 
 namespace Thinktecture.IdentityServer.Repositories
 {
@@ -7,8 +8,8 @@ namespace Thinktecture.IdentityServer.Repositories
         void CreateUser(string userName, string password, string email = null);
         void DeleteUser(string userName);
         
-        IEnumerable<string> GetUsers(int start, int count, out int totalCount);
-        IEnumerable<string> GetUsers(string filter, int start, int count, out int totalCount);
+        IEnumerable<User> GetUsers(int start, int count, out int totalCount);
+        IEnumerable<User> GetUsers(string filter, int start, int count, out int totalCount);
 
         void SetPassword(string userName, string password);
 
@@ -18,5 +19,6 @@ namespace Thinktecture.IdentityServer.Repositories
         IEnumerable<string> GetRoles();
         void CreateRole(string roleName);
         void DeleteRole(string roleName);
+        void UnlockUser(string userName);
     }
 }
